@@ -4,10 +4,10 @@ library(stringr)
 library(ggplot2)
 library(reshape2)
 
-save(bikes_dt, file = "bikes_dt.rda")
-save(bikes2_dt, file = "bikes2_dt.rda")
-save(census_dt, file = "census_dt.rda")
-save(census_perc, file = "census_perc.rda")
+load(bikes_dt, file = "bikes_dt.rda")
+load(bikes2_dt, file = "bikes2_dt.rda")
+load(census_dt, file = "census_dt.rda")
+load(census_perc, file = "census_perc.rda")
 #convert all blanks, NAs, and "unknowns" to NA type
 #bikes = read.csv("bikes.csv", sep = ",", stringsAsFactors = FALSE, na.strings = c('', 'unknown', 'Unknown', "NA", "-", "?"))
 #bikes_dt = as.data.table(bikes)
@@ -442,24 +442,47 @@ g + scale_fill_discrete(name = "Stolen Bikes Rank", breaks=c("1", "0"),
   theme(plot.title = element_text(hjust = 0.5, face = "bold"), 
         text = element_text(size=20), axis.title = element_text(face = "bold")) +
   theme(panel.background = element_blank(), axis.line = element_line(colour = "black"))
-######################## NOT USED ###############################################
 
+#--------------------------------------------------------------------------------------------------------------
+# Perform One-Way ANOVA Test to see if the Difference in Averge Bikes Stolen by Season is Stat. Significant
 
-# 
-# #for each county, create  two lists: top 25%, bottom 75%
-# lst1 <- list() #store zips in top 25%
-# lst2 <- list() #store zips in bottom 75%
-# temp_dt <- NULL
-# 
-# for (i in 1:10) {
-#   temp_dt <- y[county == county_vec[i]]
-#   lst1[[i]] <-  temp_dt[N>top25_dt$top25_Quantile[i], Zip]
-#   lst2[[i]] <-  temp_dt[N<=top25_dt$top25_Quantile[i], Zip]
-#   temp_dt = NULL
-#   i = i +1
-# }
-# 
-# #combine the list of zip codes into a data table "zips_dt"
-# zips_dt <- data.table(county_vec, lst1, lst2)
-# colnames(zips_dt) <- c("county", "top25p", "bottom75p")
+aov_dt <- bikes2_dt[year(Date)>=2012 & year(Date)<=2017 & is.na(Season) == FALSE, .N, by = .(Season, year(Date))]
 
+summary(aov(aov_dt$N ~ aov_dt$Season))
+aov_dt[, sd, by = .(Season)]
+
+sd_season <- aov_dt[, sd(N), by = .(Season)]
+avg_season <- aov_dt[,mean(N), by = .(Season)]
+
+#test homoscedastiscity #1: Bartlett
+bartlett.test(aov_dt$N ~ aov_dt$Season, data = aov_dt) 
+
+#test homoscedastiscity #2: Levene
+library(car)
+leveneTest(aov_dt$N ~ as.factor(aov_dt$Season), data = aov_dt) 
+
+#test for normality
+qqnorm(aov_dt$N - mean(aov_dt$N)) #image included in Shinyapp
+qqline(aov_dt$N - mean(aov_dt$N)) #image included in Shinyapp
+
+#create data frame summarizing average and standard deviation by season
+table_1 <- data.frame(Season = c("Spring", "Summer", "Fall", "Winter"), Avg_Bikes_Stolen = round(avg_season$V1,0),
+                      Standard_Devation = round(sd_season$V1,0))
+
+table_2 <- data.frame(Test = c("Bartlett's Test", "Levene's Test", "ANOVA"), Test_Stat = c(1.5751, 0.3253, 3.406),
+                      Null_Hypothesis = c("Same Variance", "Same Variance", "Same Mean"),  
+                      p_value = c(0.665, 0.807, 0.0417), Conclusion = 
+                        c("Can't reject null", "Can't reject null", "Reject null"))
+
+library(gridExtra)
+library(grid)
+
+table1 <- grid.table(table_1, rows = NULL)  #image included in Shinyapp
+
+t1 <- ttheme_default(core=list(
+  fg_params=list(fontface=c(rep("plain", 2), "bold.italic")),
+  bg_params = list(fill=c(rep(c("grey95", "grey90"),
+                              length.out=2), "#6BAED6"),
+                   alpha = rep(c(1,0.5), each=5))))
+
+table2 <- grid.table(table_2, theme = t1, rows = NULL) ##image included in Shinyapp
