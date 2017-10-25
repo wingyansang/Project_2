@@ -446,13 +446,17 @@ g + scale_fill_discrete(name = "Stolen Bikes Rank", breaks=c("1", "0"),
 #--------------------------------------------------------------------------------------------------------------
 # Perform One-Way ANOVA Test to see if the Difference in Averge Bikes Stolen by Season is Stat. Significant
 
-aov_dt <- bikes2_dt[year(Date)>=2012 & year(Date)<=2017 & is.na(Season) == FALSE, .N, by = .(Season, year(Date))]
+aov_dt <- bikes2_dt[year(Date)>=2012 & year(Date)<=2017  & !(year(Date) == 2017 & Season == "Fall")&
+                    is.na(Season) == FALSE, .N, by = .(Season, year(Date))]
+#since Fall 2012 was not full season, assumed the first 13 days of the season is same as daily average 
+#for rest of season
+aov_dt[[3]][17] = 689+90/78
 
 summary(aov(aov_dt$N ~ aov_dt$Season))
-aov_dt[, sd, by = .(Season)]
 
 sd_season <- aov_dt[, sd(N), by = .(Season)]
-avg_season <- aov_dt[,mean(N), by = .(Season)]
+avg_season <- aov_dt[,sum(N)/5, by = .(Season)]
+
 
 #test homoscedastiscity #1: Bartlett
 bartlett.test(aov_dt$N ~ aov_dt$Season, data = aov_dt) 
@@ -466,18 +470,15 @@ qqnorm(aov_dt$N - mean(aov_dt$N)) #image included in Shinyapp
 qqline(aov_dt$N - mean(aov_dt$N)) #image included in Shinyapp
 
 #create data frame summarizing average and standard deviation by season
-table_1 <- data.frame(Season = c("Spring", "Summer", "Fall", "Winter"), Avg_Bikes_Stolen = round(avg_season$V1,0),
-                      Standard_Devation = round(sd_season$V1,0))
 
-table_2 <- data.frame(Test = c("Bartlett's Test", "Levene's Test", "ANOVA"), Test_Stat = c(1.5751, 0.3253, 3.406),
+table_2 <- data.frame(Test = c("Bartlett's Test", "Levene's Test", "ANOVA"), Test_Stat = c(1.3913, 0.2975, 3.096),
                       Null_Hypothesis = c("Same Variance", "Same Variance", "Same Mean"),  
-                      p_value = c(0.665, 0.807, 0.0417), Conclusion = 
-                        c("Can't reject null", "Can't reject null", "Reject null"))
+                      p_value = c(0.7076, 0.8267, 0.0566), Conclusion = 
+                        c("Can't reject null", "Can't reject null", "Can't reject null"))
 
 library(gridExtra)
 library(grid)
 
-table1 <- grid.table(table_1, rows = NULL)  #image included in Shinyapp
 
 t1 <- ttheme_default(core=list(
   fg_params=list(fontface=c(rep("plain", 2), "bold.italic")),

@@ -51,7 +51,7 @@ shinyUI(dashboardPage(
                   fluidRow(
                       infoBox("Spring", "Avg. Stolen: 1371", width = 3),
                       infoBox("Summer", "Avg. Stolen: 1621", width = 3),
-                      infoBox("Fall", "Avg. Stolen: 947", width = 3),
+                      infoBox("Fall", "Avg. Stolen: 1080", width = 3),
                       infoBox("Winter", "Avg. Stolen: 942", width = 3)),
              fluidRow(
                       box(img(src='Table2.jpeg')),
