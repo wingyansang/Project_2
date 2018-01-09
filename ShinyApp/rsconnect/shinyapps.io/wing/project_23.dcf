@@ -1,0 +1,13 @@
+name: project_23
+title: Project_2
+username:
+account: wing
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 228906
+bundleId: 1043476
+url: https://wing.shinyapps.io/project_23/
+when: 1508899145.82783
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: www/.DS_Store

@@ -4,13 +4,9 @@ library(stringr)
 library(ggplot2)
 library(reshape2)
 
-load(bikes_dt, file = "bikes_dt.rda")
-load(bikes2_dt, file = "bikes2_dt.rda")
-load(census_dt, file = "census_dt.rda")
-load(census_perc, file = "census_perc.rda")
 #convert all blanks, NAs, and "unknowns" to NA type
-#bikes = read.csv("bikes.csv", sep = ",", stringsAsFactors = FALSE, na.strings = c('', 'unknown', 'Unknown', "NA", "-", "?"))
-#bikes_dt = as.data.table(bikes)
+bikes = read.csv("bikes.csv", sep = ",", stringsAsFactors = FALSE, na.strings = c('', 'unknown', 'Unknown', "NA", "-", "?"))
+bikes_dt = as.data.table(bikes)
 #--------------------------------------------------------------------------------------------------------------
 
 ###Lock_Desc column: combine two of the columns to "chain". Combine U-lock columns. 
